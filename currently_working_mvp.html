@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>organisation Hierarchy Builder</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>organisation Hierarchy Builder</h1>
+    
+    <div class="instructions">
+      <h3>How to Build Your organisation Chart</h3>
+      <ol>
+        <li>Add people to your organisation by filling in their name and selecting a role (or choose from presets)</li>
+        <li>Create relationships between people using the "Add Relationship" section</li>
+        <li>The chart will automatically update as you add people and relationships</li>
+        <li>You can remove people or relationships at any time using the Remove buttons</li>
+        <li>Use the templates for common organisational structures or start from scratch</li>
+      </ol>
+    </div>
+    
+    <!-- Quick Start Templates -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Quick Start Options</h2>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+        <button class="btn btn-success" onclick="openWizard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"></path>
+            <path d="M12 8v4"></path>
+            <path d="M12 16h.01"></path>
+          </svg>
+          Setup Wizard
+        </button>
+        <div style="width: 1px; background-color: #ddd; margin: 0 10px;"></div>
+        <button class="btn" onclick="loadBusinessTemplate('matrix')">Matrix Org</button>
+        <button class="btn" onclick="loadBusinessTemplate('functional')">Functional Org</button>
+        <button class="btn" onclick="loadBusinessTemplate('divisional')">Divisional Org</button>
+        <button class="btn" onclick="loadBusinessTemplate('flat')">Flat Org</button>
+        <div style="width: 1px; background-color: #ddd; margin: 0 10px;"></div>
+        <button class="btn" onclick="loadTemplate('small-business')">Small Business</button>
+        <button class="btn" onclick="loadTemplate('corporate')">Corporate</button>
+        <button class="btn" onclick="loadTemplate('startup')">Startup</button>
+        <button class="btn" onclick="loadTemplate('nonprofit')">Non-Profit</button>
+      </div>
+    </div>
+    
+    <div class="two-columns">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Add Person</h2>
+            <div class="tooltip">
+              <span class="tooltip-icon">?</span>
+              <span class="tooltip-text">Add each person in your organisation with their name and role/title</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="personName">Name</label>
+            <div class="input-container">
+              <input type="text" id="personName" placeholder="e.g., John Smith">
+              <button type="button" class="btn-clear" onclick="clearInput('personName')" title="Clear name">✕</button>
+            </div>
+            <div id="nameValidation" class="validation-feedback"></div>
+          </div>
+          
+          <div class="form-group">
+            <label>Position Type</label>
+            <div class="position-type">
+              <div class="position-btn active" onclick="selectPositionType('executive')" id="position-executive">Executive</div>
+              <div class="position-btn" onclick="selectPositionType('management')" id="position-management">Management</div>
+              <div class="position-btn" onclick="selectPositionType('staff')" id="position-staff">Staff</div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="personRole">Role/Title <span style="font-weight: normal; color: #666;">(Optional)</span></label>
+            
+            <!-- Quick title buttons based on position type -->
+            <div id="executive-titles" class="role-presets">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CEO')">CEO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('President')">President</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CTO')">CTO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CFO')">CFO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('COO')">COO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CMO')">CMO</button>
+            </div>
+            
+            <div id="management-titles" class="role-presets" style="display: none;">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Director')">Director</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Manager')">Manager</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Team Lead')">Team Lead</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Supervisor')">Supervisor</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Department Head')">Dept Head</button>
+            </div>
+            
+            <div id="staff-titles" class="role-presets" style="display: none;">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Specialist')">Specialist</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Associate')">Associate</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Analyst')">Analyst</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Coordinator')">Coordinator</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Assistant')">Assistant</button>
+            </div>
+            
+            <!-- Role categories -->
+            <div class="role-categories" style="margin-top: 10px;">
+              <button type="button" class="role-category-btn active" onclick="showRoleCategory('common')">Common</button>
+              <button type="button" class="role-category-btn" onclick="showRoleCategory('executive')">Executive</button>
+              <button type="button" class="role-category-btn" onclick="showRoleCategory('management')">Management</button>
+              <button type="button" class="role-category-btn" onclick="showRoleCategory('department')">Department</button>
+            </div>
+            
+            <!-- Role presets by category -->
+            <div class="role-presets" id="common-roles">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CEO')">CEO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Manager')">Manager</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Director')">Director</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Team Lead')">Team Lead</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Employee')">Employee</button>
+            </div>
+            
+            <div class="role-presets" id="executive-roles" style="display: none;">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CEO')">CEO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CTO')">CTO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CFO')">CFO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('COO')">COO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('CMO')">CMO</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('President')">President</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Founder')">Founder</button>
+            </div>
+            
+            <div class="role-presets" id="management-roles" style="display: none;">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('VP')">VP</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Director')">Director</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Manager')">Manager</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Team Lead')">Team Lead</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Supervisor')">Supervisor</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Department Head')">Department Head</button>
+            </div>
+            
+            <div class="role-presets" id="department-roles" style="display: none;">
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Software Engineer')">Software Engineer</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Designer')">Designer</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Accountant')">Accountant</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('HR Specialist')">HR Specialist</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Sales Rep')">Sales Rep</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Marketing Specialist')">Marketing</button>
+              <button type="button" class="role-preset-btn" onclick="setRolePreset('Analyst')">Analyst</button>
+            </div>
+            
+            <div class="input-container">
+              <select id="personRole" onchange="handleRoleSelection()">
+                <option value="">-- Select a role or type below --</option>
+                <optgroup label="Executive">
+                  <option value="GOV">GOV</option>
+                  <option value="HEAD">HEAD</option>
+                  <option value="CEO">CEO</option>
+                  <option value="CTO">CTO</option>
+                  <option value="CFO">CFO</option>
+                  <option value="COO">COO</option>
+                  <option value="President">President</option>
+                </optgroup>
+                <optgroup label="Management">
+                  <option value="Director">Director</option>
+                  <option value="VP">Vice President</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Team Lead">Team Lead</option>
+                  <option value="HEAD">Head</option>
+                  <option value="Deputy Head">Deputy Head</option>
+                </optgroup>
+                <optgroup label="Department Specific">
+                  <option value="Education">Education</option>
+                  <option value="Software Engineer">Software Engineer</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Product Manager">Product Manager</option>
+                  <option value="HR Specialist">HR Specialist</option>
+                  <option value="Marketing Specialist">Marketing Specialist</option>
+                  <option value="Sales Representative">Sales Representative</option>
+                  <option value="Accountant">Accountant</option>
+                </optgroup>
+                <option value="custom">Custom role...</option>
+              </select>
+              <input type="text" id="customRole" placeholder="Enter custom role" style="display: none; margin-top: 5px;">
+              <button type="button" class="btn-clear" onclick="clearInput('personRole')" title="Clear role">✕</button>
+            </div>
+            <div id="roleValidation" class="validation-feedback"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="personDepartment">Department <span style="font-weight: normal; color: #666;">(Optional)</span></label>
+            <div class="input-container">
+              <select id="personDepartment">
+                <option value="">-- None --</option>
+                <option value="executive">Executive</option>
+                <option value="engineering">Engineering</option>
+                <option value="finance">Finance</option>
+                <option value="hr">Human Resources</option>
+                <option value="marketing">Marketing</option>
+                <option value="sales">Sales</option>
+                <option value="operations">Operations</option>
+                <option value="research">Research & Development</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <button class="btn btn-success" onclick="addPerson()">Add Person <span class="keyboard-shortcut">Alt+A</span></button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Add Relationship</h2>
+            <div class="tooltip">
+              <span class="tooltip-icon">?</span>
+              <span class="tooltip-text">Define who reports to whom in your organisation</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="manager">Leader</label>
+            <div class="input-container">
+              <select id="manager" onchange="updateRelationshipVisual()">
+                <option value="">Select a person</option>
+              </select>
+            </div>
+            <div id="managerValidation" class="validation-feedback"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="report">Team Member</label>
+            <div class="input-container">
+              <select id="report" onchange="updateRelationshipVisual()">
+                <option value="">Select a person</option>
+              </select>
+            </div>
+            <div id="reportValidation" class="validation-feedback"></div>
+          </div>
+          
+          <div class="relationship-visual" id="relationship-visual">
+            <p>Select a Leader and Team Member to visualize the relationship</p>
+          </div>
+          
+          <div class="form-group">
+            <label>Quick Relationship Templates</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
+              <button type="button" class="role-preset-btn" onclick="setRelationshipTemplate('direct-report')">Direct Report</button>
+              <button type="button" class="role-preset-btn" onclick="setRelationshipTemplate('matrix')">Matrix Reporting</button>
+              <button type="button" class="role-preset-btn" onclick="setRelationshipTemplate('peer')">Peer Relationship</button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Relationship Type</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+              <label style="display: flex; align-items: center;">
+                <input type="radio" name="relationshipType" value="reports-to" checked>
+                <span style="margin-left: 5px;">Reports To</span>
+              </label>
+              <label style="display: flex; align-items: center;">
+                <input type="radio" name="relationshipType" value="dotted-line">
+                <span style="margin-left: 5px;">Dotted Line</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <button class="btn btn-success" onclick="addRelationship()" title="Create a reporting relationship between these people">
+              Add Relationship <span class="keyboard-shortcut">Alt+R</span>
+            </button>
+          </div>
+          <div id="relationshipAddedFeedback" class="success-feedback"></div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Current Structure</h2>
+          </div>
+          
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchPeople" placeholder="Search people or roles..." onkeyup="filterPeople()">
+          </div>
+          
+          <div class="department-selector">
+            <label for="filterDepartment">Filter by Department:</label>
+            <select id="filterDepartment" onchange="filterPeople()">
+              <option value="">All Departments</option>
+              <option value="executive">Executive</option>
+              <option value="engineering">Engineering</option>
+              <option value="finance">Finance</option>
+              <option value="hr">Human Resources</option>
+              <option value="marketing">Marketing</option>
+              <option value="sales">Sales</option>
+              <option value="operations">Operations</option>
+              <option value="research">Research & Development</option>
+            </select>
+          </div>
+          
+          <h3>People</h3>
+          <ul class="list-group" id="peopleList">
+            <!-- People will be added here -->
+          </ul>
+          
+          <h3>Relationships</h3>
+          <ul class="list-group" id="relationshipsList">
+            <!-- Relationships will be added here -->
+          </ul>
+          
+          <div class="action-row">
+            <button class="btn" onclick="resetStructure()" title="Delete all people and relationships">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Reset All
+            </button>
+            <button class="btn btn-success" onclick="loadSampleData()" title="Load sample organisation structure">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Load Sample
+            </button>
+            <button id="copyBtn" class="btn copy-btn" onclick="copyStructure()" title="Copy a text representation of the structure">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Structure
+            </button>
+          </div>
+        </div>
+        
+        <!-- Help Section with Examples -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Examples & Tips</h2>
+          </div>
+          
+          <div class="help-section">
+            <h3>Example Structures</h3>
+            
+            <div class="example">
+              <h4>Simple Hierarchy</h4>
+              <p>A basic CEO with direct reports:</p>
+              <ul>
+                <li>CEO (top level)</li>
+                <li>CFO (reports to CEO)</li>
+                <li>CTO (reports to CEO)</li>
+              </ul>
+            </div>
+            
+            <div class="example">
+              <h4>Multi-Level Hierarchy</h4>
+              <p>A hierarchy with multiple levels:</p>
+              <ul>
+                <li>Director (top level)</li>
+                <li>Manager (reports to Director)</li>
+                <li>Team Lead (reports to Manager)</li>
+                <li>Team Members (report to Team Lead)</li>
+              </ul>
+            </div>
+            
+            <h3>Tips</h3>
+            <ul>
+              <li>Start by adding all people before creating relationships</li>
+              <li>Work from the top down (add leaders first)</li>
+              <li>Each person can have multiple reports but typically only one manager</li>
+              <li>You can't create circular reporting structures</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hidden textarea for Mermaid syntax -->
+    <textarea id="input" class="hidden"></textarea>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">organisation Chart</h2>
+      </div>
+      <div class="chart-controls">
+        <span>Chart Direction:</span>
+        <div class="direction-toggle">
+          <input type="radio" id="direction-tb" name="chart-direction" value="TB" checked>
+          <label for="direction-tb" title="Top to Bottom">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            Top→Bottom
+          </label>
+          <input type="radio" id="direction-lr" name="chart-direction" value="LR">
+          <label for="direction-lr" title="Left to Right">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+            Left→Right
+          </label>
+        </div>
+      </div>
+      <div id="chart" class="mermaid"></div>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>
